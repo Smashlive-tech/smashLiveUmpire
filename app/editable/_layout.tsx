@@ -1,5 +1,4 @@
 import { Stack } from "expo-router";
-import "../global.css";
 export default function RootLayout() {
   return (
     <Stack>
@@ -8,15 +7,7 @@ export default function RootLayout() {
         options={{ headerShown: false }}
       ></Stack.Screen>
       <Stack.Screen
-        name="(auth)"
-        options={{ headerShown: false }}
-      ></Stack.Screen>
-      <Stack.Screen
-        name="(tabs)"
-        options={{ headerShown: false }}
-      ></Stack.Screen>
-      <Stack.Screen
-        name="editable"
+        name="help_support"
         options={{ headerShown: false }}
       ></Stack.Screen>
     </Stack>

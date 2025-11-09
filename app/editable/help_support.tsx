@@ -1,0 +1,198 @@
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+  Alert,
+  LayoutAnimation,
+  Linking,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
+  useColorScheme,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+// Enable animation for Android expand/collapse
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+export default function HelpSupportScreen() {
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+
+  const faqs = [
+    {
+      id: 1,
+      question: "How do I start a match?",
+      answer:
+        "Once you are assigned to a tournament, go to the 'Matches' section. Select the match you are officiating and tap the 'Start Match' button to begin scoring.",
+    },
+    {
+      id: 2,
+      question: "How do I update scores during a match?",
+      answer:
+        "On the scoring screen, you can use the + and - buttons beside each player or team to adjust the score. You can also use 'Undo' or 'Redo' for corrections during live scoring.",
+    },
+    {
+      id: 3,
+      question: "Can I pause or resume a live match?",
+      answer:
+        "Yes. Use the 'Pause' button on the scoring screen if the game is interrupted. When ready, simply tap 'Resume' to continue from the same score state.",
+    },
+    {
+      id: 4,
+      question: "How do I submit the final match result?",
+      answer:
+        "After the match concludes, tap 'Submit Result' on the scoring screen. Confirm the final scores and the winner before submission. Once confirmed, the match will be marked as 'Completed'.",
+    },
+    {
+      id: 5,
+      question: "What if I notice incorrect player data or court assignment?",
+      answer:
+        "If you find incorrect details such as player names or court assignments, please report it using the 'Report Issue' button available on the match page or contact support directly.",
+    },
+  ];
+
+  const handleToggle = (id: number) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOpenFAQ(openFAQ === id ? null : id);
+  };
+
+  return (
+    <SafeAreaView edges={["top"]} className="flex-1 bg-white dark:bg-[#101622]">
+      {/* ===== Header ===== */}
+      <View className="flex-row items-center justify-between px-5 py-5">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="flex-row items-center"
+        >
+          <Ionicons
+            name="arrow-back"
+            size={22}
+            color={isDark ? "#f9fafb" : "#111827"}
+          />
+        </TouchableOpacity>
+
+        <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          Help & Support
+        </Text>
+
+        <View style={{ width: 28 }} />
+      </View>
+
+      {/* ===== Content ===== */}
+      <ScrollView
+        className="flex-1 px-5"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 50 }}
+      >
+        {/* ===== FAQ Section ===== */}
+        <View className="mb-8 mt-4">
+          <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            Frequently Asked Questions
+          </Text>
+
+          <View className="bg-white dark:bg-gray-800/60 rounded-xl shadow-sm">
+            {faqs.map((faq) => (
+              <View
+                key={faq.id}
+                className="border-b border-gray-100 dark:border-gray-700"
+              >
+                <TouchableOpacity
+                  onPress={() => handleToggle(faq.id)}
+                  activeOpacity={0.8}
+                  className="flex-row justify-between items-center px-5 py-4"
+                >
+                  <Text className="text-base font-medium text-gray-800 dark:text-gray-200 flex-1 pr-4">
+                    {faq.question}
+                  </Text>
+                  <MaterialIcons
+                    name={openFAQ === faq.id ? "expand-less" : "expand-more"}
+                    size={26}
+                    color={isDark ? "#9ca3af" : "#6b7280"}
+                  />
+                </TouchableOpacity>
+
+                {openFAQ === faq.id && (
+                  <View className="px-5 pb-4">
+                    <Text className="text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                      {faq.answer}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* ===== Contact Support Card ===== */}
+        <View className="mb-6">
+          <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            Contact Support
+          </Text>
+
+          <View className="bg-white dark:bg-gray-800/60 rounded-xl shadow-sm">
+            {/* Email */}
+            <TouchableOpacity
+              onPress={() =>
+                Linking.openURL("mailto:umpire-support@smashlive.com")
+              }
+              className="flex-row items-center justify-between px-5 py-5 border-b border-gray-100 dark:border-gray-700 active:bg-gray-100/60 dark:active:bg-gray-700/50"
+              activeOpacity={0.85}
+            >
+              <View className="flex-row items-center gap-4">
+                <View className="size-11 rounded-full bg-[#0d59f2]/20 items-center justify-center">
+                  <MaterialIcons name="mail" size={24} color="#0d59f2" />
+                </View>
+                <Text className="text-base font-medium text-gray-900 dark:text-white">
+                  Email Support
+                </Text>
+              </View>
+              <MaterialIcons
+                name="chevron-right"
+                size={26}
+                color={isDark ? "#9ca3af" : "#6b7280"}
+              />
+            </TouchableOpacity>
+
+            {/* Live Chat */}
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert(
+                  "Live Chat",
+                  "Connecting you with SmashLive Umpire Support..."
+                )
+              }
+              className="flex-row items-center justify-between px-5 py-5 active:bg-gray-100/60 dark:active:bg-gray-700/50"
+              activeOpacity={0.85}
+            >
+              <View className="flex-row items-center gap-4">
+                <View className="size-11 rounded-full bg-[#0d59f2]/20 items-center justify-center">
+                  <MaterialIcons name="chat-bubble" size={22} color="#0d59f2" />
+                </View>
+                <Text className="text-base font-medium text-gray-900 dark:text-white">
+                  Live Chat
+                </Text>
+              </View>
+              <MaterialIcons
+                name="chevron-right"
+                size={26}
+                color={isDark ? "#9ca3af" : "#6b7280"}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
