@@ -19,6 +19,10 @@ export default function RootLayout() {
         name="editable"
         options={{ headerShown: false }}
       ></Stack.Screen>
+      <Stack.Screen
+        name="start_match"
+        options={{ headerShown: false }}
+      ></Stack.Screen>
     </Stack>
   );
 }

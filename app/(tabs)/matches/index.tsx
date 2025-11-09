@@ -20,63 +20,63 @@ export default function MatchesScreen() {
   const isDark = colorScheme === "dark";
   const router = useRouter();
 
-  const tabs = ["Today", "Upcoming", "Completed"];
+  const tabs = ["Today", "Ongoing", "Upcoming", "Completed"];
 
   // ===== Mock Data =====
+  const allMatches = [
+    {
+      id: 101,
+      court: "Court 1",
+      event: "Women's Doubles - QF",
+      team1: "Chen Qing Chen & Jia Yi Fan",
+      team2: "Nami Matsuyama & Chiharu Shida",
+      category: "Today",
+      image:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuBOjG2Dm456BaRaJc8scsloNW00wkdFO2Jvy_AINM_72HZn_9Wlv-MoOCJEORtUB3UVhVbchhulhg-lvD-LYgOPjdY4ZVffK5TvQYkrdzgb9Wyk6cpLiH7K__jEYq4kL7Hw6X9G1uupJ6jJfjn-75ebGxHjvWq18P2tiFApyd4jLDnDYfrIT7zNXxkB6KmVxctsDKme8cAy3XYFH98L-IOZBv26EhnNn6X9Z3pM7CVMgmahHYkH_UnwHShonn1GmH5lpyyXN-hsVmdB",
+    },
+    {
+      id: 102,
+      court: "Court 2",
+      event: "Men's Singles - SF",
+      team1: "Viktor Axelsen",
+      team2: "Kento Momota",
+      category: "Ongoing",
+      image:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuBOjG2Dm456BaRaJc8scsloNW00wkdFO2Jvy_AINM_72HZn_9Wlv-MoOCJEORtUB3UVhVbchhulhg-lvD-LYgOPjdY4ZVffK5TvQYkrdzgb9Wyk6cpLiH7K__jEYq4kL7Hw6X9G1uupJ6jJfjn-75ebGxHjvWq18P2tiFApyd4jLDnDYfrIT7zNXxkB6KmVxctsDKme8cAy3XYFH98L-IOZBv26EhnNn6X9Z3pM7CVMgmahHYkH_UnwHShonn1GmH5lpyyXN-hsVmdB",
+    },
+    {
+      id: 103,
+      court: "Court 3",
+      event: "Mixed Doubles - Final",
+      team1: "Zheng Siwei & Huang Yaqiong",
+      team2: "Dechapol Puavaranukroh & Sapsiree Taerattanachai",
+      category: "Upcoming",
+      image: "https://picsum.photos/id/1050/400/300",
+    },
+    {
+      id: 104,
+      court: "Court 4",
+      event: "Men's Doubles - Final",
+      team1: "Ahsan & Setiawan",
+      team2: "Lee & Wang",
+      category: "Completed",
+      image: "https://picsum.photos/id/1025/400/300",
+    },
+    {
+      id: 105,
+      court: "Court 5",
+      event: "Women's Singles - SF",
+      team1: "Tai Tzu Ying",
+      team2: "Carolina Marin",
+      category: "Upcoming",
+      image: "https://picsum.photos/id/1027/400/300",
+    },
+  ];
+
+  // ===== Fetch matches by category =====
   const fetchMatches = async (status: string) => {
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 500));
-
-    const allMatches = [
-      {
-        id: 101,
-        court: "Court 1",
-        event: "Women's Doubles - QF",
-        team1: "Chen Qing Chen & Jia Yi Fan",
-        team2: "Nami Matsuyama & Chiharu Shida",
-        category: "Today",
-        image:
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuBOjG2Dm456BaRaJc8scsloNW00wkdFO2Jvy_AINM_72HZn_9Wlv-MoOCJEORtUB3UVhVbchhulhg-lvD-LYgOPjdY4ZVffK5TvQYkrdzgb9Wyk6cpLiH7K__jEYq4kL7Hw6X9G1uupJ6jJfjn-75ebGxHjvWq18P2tiFApyd4jLDnDYfrIT7zNXxkB6KmVxctsDKme8cAy3XYFH98L-IOZBv26EhnNn6X9Z3pM7CVMgmahHYkH_UnwHShonn1GmH5lpyyXN-hsVmdB",
-      },
-      {
-        id: 102,
-        court: "Court 2",
-        event: "Men's Singles - SF",
-        team1: "Viktor Axelsen",
-        team2: "Kento Momota",
-        category: "Today",
-        image:
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuBOjG2Dm456BaRaJc8scsloNW00wkdFO2Jvy_AINM_72HZn_9Wlv-MoOCJEORtUB3UVhVbchhulhg-lvD-LYgOPjdY4ZVffK5TvQYkrdzgb9Wyk6cpLiH7K__jEYq4kL7Hw6X9G1uupJ6jJfjn-75ebGxHjvWq18P2tiFApyd4jLDnDYfrIT7zNXxkB6KmVxctsDKme8cAy3XYFH98L-IOZBv26EhnNn6X9Z3pM7CVMgmahHYkH_UnwHShonn1GmH5lpyyXN-hsVmdB",
-      },
-      {
-        id: 103,
-        court: "Court 3",
-        event: "Mixed Doubles - Final",
-        team1: "Zheng Siwei & Huang Yaqiong",
-        team2: "Dechapol Puavaranukroh & Sapsiree Taerattanachai",
-        category: "Upcoming",
-        image: "https://picsum.photos/id/1050/400/300",
-      },
-      {
-        id: 104,
-        court: "Court 4",
-        event: "Men's Doubles - Final",
-        team1: "Ahsan & Setiawan",
-        team2: "Lee & Wang",
-        category: "Completed",
-        image: "https://picsum.photos/id/1025/400/300",
-      },
-      {
-        id: 105,
-        court: "Court 5",
-        event: "Women's Singles - SF",
-        team1: "Tai Tzu Ying",
-        team2: "Carolina Marin",
-        category: "Upcoming",
-        image: "https://picsum.photos/id/1027/400/300",
-      },
-    ];
-
+    await new Promise((r) => setTimeout(r, 400));
     const filtered = allMatches.filter((m) => m.category === status);
     setMatches(filtered);
     setLoading(false);
@@ -85,6 +85,16 @@ export default function MatchesScreen() {
   useEffect(() => {
     fetchMatches(activeTab);
   }, [activeTab]);
+
+  // ===== Handle Start Match (Move from Today → Ongoing) =====
+  const handleStartMatch = (matchId: number) => {
+    // Simulate backend update
+    const updated = allMatches.map((m) =>
+      m.id === matchId ? { ...m, category: "Ongoing" } : m
+    );
+    setMatches(updated.filter((m) => m.category === "Today"));
+    router.push(`/start_match/${matchId}`);
+  };
 
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-white dark:bg-[#101622]">
@@ -140,7 +150,7 @@ export default function MatchesScreen() {
         )}
 
         {!loading && matches.length > 0 && (
-          <View className="flex-1 gap-2">
+          <View className="flex-1 gap-2 mb-5">
             {matches.map((match) => {
               const team1Players = match.team1
                 .split("&")
@@ -195,11 +205,22 @@ export default function MatchesScreen() {
                     {/* ===== Button Logic ===== */}
                     {activeTab === "Today" && (
                       <TouchableOpacity
-                        onPress={() => alert("Start Match")}
+                        onPress={() => handleStartMatch(match.id)}
                         className="bg-blue-600 rounded-lg h-9 w-full items-center justify-center"
                       >
                         <Text className="text-white text-[15px] font-semibold">
                           Start Match
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {activeTab === "Ongoing" && (
+                      <TouchableOpacity
+                        onPress={() => router.push(`/start_match/${match.id}`)}
+                        className="bg-yellow-500 rounded-lg h-9 w-full items-center justify-center"
+                      >
+                        <Text className="text-white text-[15px] font-semibold">
+                          Continue Match
                         </Text>
                       </TouchableOpacity>
                     )}

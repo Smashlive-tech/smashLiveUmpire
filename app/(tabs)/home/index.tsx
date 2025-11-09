@@ -97,6 +97,7 @@ const liveData: Tournament[] = [
 
 // ===== Card Component =====
 const TournamentCard = ({ item }: { item: Tournament }) => {
+  const router = useRouter();
   return (
     <View
       className="mr-4 rounded-xl bg-white dark:bg-[#1A2233] border border-zinc-200 dark:border-gray-700 shadow-sm overflow-hidden"
@@ -139,7 +140,9 @@ const TournamentCard = ({ item }: { item: Tournament }) => {
 
         <Pressable
           className="bg-primary px-4 py-2 rounded-lg mt-4 self-start"
-          onPress={() => alert(`Opening ${item.name}`)}
+          onPress={() => {
+            router.push(`/home/${item.id}`);
+          }}
         >
           <Text className="text-white text-sm font-medium">
             Open Tournament
@@ -205,9 +208,9 @@ export default function HomeScreen() {
         </View>
 
         {/* Tournament Sections */}
-        <TournamentSection title="Assigned" data={assignedData} />
+        <TournamentSection title="Ongoing" data={assignedData} />
         <TournamentSection title="Upcoming" data={upcomingData} />
-        <TournamentSection title="Live" data={liveData} />
+        <TournamentSection title="Past" data={liveData} />
       </ScrollView>
     </SafeAreaView>
   );
