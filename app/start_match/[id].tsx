@@ -66,11 +66,19 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
   // ===== Score update + auto serve =====
   const updateScore = (team: "A" | "B", delta: number) => {
     setScores((prev) => {
-      const newScore = { ...prev, [team]: Math.max(0, prev[team] + delta) };
+      const newScore = { ...prev };
 
-      // Only change serve if score increased (not decreased)
+      // Prevent negative scores
+      if (prev[team] + delta < 0) return prev;
+
+      newScore[team] = prev[team] + delta;
+
       if (delta > 0) {
+        // If score increased, same team keeps serving
         setServingTeam(team);
+      } else if (delta < 0) {
+        // If score decreased, serve goes to the opposite team
+        setServingTeam(team === "A" ? "B" : "A");
       }
 
       return newScore;
