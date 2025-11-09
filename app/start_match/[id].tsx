@@ -210,6 +210,7 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
               backgroundColor: "transparent",
               marginBottom: 12,
             }}
+            trailingZeros={0}
             decimalSeparator=":"
             textCharStyle={{
               fontSize: 38,
