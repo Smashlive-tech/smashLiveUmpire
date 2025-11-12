@@ -83,10 +83,6 @@ export default function ConfirmResultScreen() {
           <Text className="text-lg font-bold text-gray-900 dark:text-white text-center flex-1">
             {match.title}
           </Text>
-
-          <Text className="w-10 text-right text-sm font-bold text-gray-500 dark:text-gray-400">
-            {match.court}
-          </Text>
         </View>
 
         {/* ===== Player Cards (same design as StartMatchScreen) ===== */}
