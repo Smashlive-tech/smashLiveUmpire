@@ -23,6 +23,10 @@ export default function RootLayout() {
         name="start_match"
         options={{ headerShown: false }}
       ></Stack.Screen>
+      <Stack.Screen
+        name="result"
+        options={{ headerShown: false }}
+      ></Stack.Screen>
     </Stack>
   );
 }

@@ -184,7 +184,7 @@ export default function TournamentMatches() {
 
                     {match.status === "Completed" && (
                       <TouchableOpacity
-                        onPress={() => alert("View Result")}
+                        onPress={() => router.push("/result/[id]")}
                         className="bg-green-600 rounded-lg h-9 w-full items-center justify-center"
                       >
                         <Text className="text-white text-[15px] font-semibold">

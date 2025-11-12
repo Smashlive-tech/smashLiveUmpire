@@ -235,7 +235,7 @@ export default function MatchesScreen() {
 
                     {activeTab === "Completed" && (
                       <TouchableOpacity
-                        onPress={() => alert("View Result")}
+                        onPress={() => router.push(`/result/${match.id}`)}
                         className="bg-green-600 rounded-lg h-9 w-full items-center justify-center"
                       >
                         <Text className="text-white text-[15px] font-semibold">

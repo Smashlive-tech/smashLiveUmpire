@@ -3,6 +3,8 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  Modal,
   Text,
   TouchableOpacity,
   View,
@@ -26,8 +28,8 @@ type Match = {
 const mockMatches: Record<string, Match> = {
   "1": {
     id: "1",
-    title: "Men's Singles – Final",
-    type: "1v1",
+    title: "Men's Doubles – Final",
+    type: "2v2",
     court: "Court 3",
     teams: {
       A: {
@@ -48,10 +50,10 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
 
   const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showServeModal, setShowServeModal] = useState(true); // 👈 new modal for first serve
 
-  // Scores start from 0
   const [scores, setScores] = useState({ A: 0, B: 0 });
-  const [servingTeam, setServingTeam] = useState<"A" | "B">("A");
+  const [servingTeam, setServingTeam] = useState<"A" | "B" | null>(null);
 
   const [isRunning, setIsRunning] = useState(false);
   const stopwatchTimerRef = useRef<StopwatchTimerMethods>(null);
@@ -67,18 +69,14 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
   const updateScore = (team: "A" | "B", delta: number) => {
     setScores((prev) => {
       const newScore = { ...prev };
-
-      // Prevent negative scores
       if (prev[team] + delta < 0) return prev;
 
       newScore[team] = prev[team] + delta;
 
       if (delta > 0) {
-        // If score increased, same team keeps serving
-        setServingTeam(team);
+        setServingTeam(team); // scorer serves next
       } else if (delta < 0) {
-        // If score decreased, serve goes to the opposite team
-        setServingTeam(team === "A" ? "B" : "A");
+        setServingTeam(team === "A" ? "B" : "A"); // reverse serve on score removal
       }
 
       return newScore;
@@ -90,17 +88,32 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
     stopwatchTimerRef.current?.play();
     setIsRunning(true);
   };
-
   const handlePause = () => {
     stopwatchTimerRef.current?.pause();
     setIsRunning(false);
   };
-
   const handleReset = () => {
-    stopwatchTimerRef.current?.reset();
-    setIsRunning(false);
-    setScores({ A: 0, B: 0 }); // reset scores too
-    setServingTeam("A");
+    // Ask for confirmation before resetting
+    Alert.alert(
+      "Confirm Reset",
+      "Are you sure you want to reset the match? This will clear all scores and restart the timer.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel", // closes alert, does nothing
+        },
+        {
+          text: "OK",
+          onPress: () => {
+            stopwatchTimerRef.current?.reset();
+            setIsRunning(false);
+            setScores({ A: 0, B: 0 });
+            setServingTeam(null);
+            setShowServeModal(true);
+          },
+        },
+      ]
+    );
   };
 
   if (loading || !match) {
@@ -116,6 +129,33 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-[#101622]">
+      {/* ===== Serve Selection Modal ===== */}
+      <Modal visible={showServeModal} transparent animationType="fade">
+        <View className="flex-1 items-center justify-center bg-black/60 px-6">
+          <View className="bg-white dark:bg-[#1E2738] rounded-2xl p-6 w-full max-w-sm items-center">
+            <Text className="text-lg font-bold text-gray-900 dark:text-white mb-4 text-center">
+              Select First Serving Team
+            </Text>
+
+            {(["A", "B"] as const).map((side) => (
+              <TouchableOpacity
+                key={side}
+                onPress={() => {
+                  setServingTeam(side);
+                  setShowServeModal(false);
+                  handlePlay();
+                }}
+                className="w-full py-3 mb-3 rounded-lg bg-blue-600 active:bg-blue-700"
+              >
+                <Text className="text-white text-center font-semibold text-base">
+                  {match.teams[side].name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
+
       {/* ===== Header ===== */}
       <View className="px-5 pt-4 pb-3 mb-3">
         <View className="flex-row items-center justify-between mb-8">
@@ -238,13 +278,25 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
                 color="#2563EB"
               />
             </TouchableOpacity>
+
+            <TouchableOpacity onPress={handleReset} className="p-3 rounded-lg ">
+              <Ionicons name="refresh" size={26} color="#2563EB" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
 
       {/* ===== Footer Buttons ===== */}
       <View className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#101622]">
-        <TouchableOpacity className="mb-3 h-14 w-full items-center justify-center rounded-lg bg-blue-600">
+        <TouchableOpacity
+          className="mb-3 h-14 w-full items-center justify-center rounded-lg bg-blue-600"
+          onPress={() =>
+            router.push({
+              pathname: "/result/confirm_result",
+              params: { id: "1", scoreA: "21", scoreB: "18" },
+            })
+          }
+        >
           <Text className="text-lg font-bold text-white">Submit Result</Text>
         </TouchableOpacity>
 
