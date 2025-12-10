@@ -18,12 +18,12 @@ export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  // Profile state
+  // profile state
   const [profilePic, setProfilePic] = useState(
     "https://lh3.googleusercontent.com/aida-public/AB6AXuBALEbqIVOyBbj_MSp30VwoHAO85ei29lp8jLEqOdwgkwZ1fal1v1DLwrhHg_q6-bJwNfitfgguH3Ijoz6XPevVYgqr5Bgd0DPvXitiqP1CGHeVS7i_eLYVZQQwDlIj8nioZd4u25mK8V58LTWb-R-F8Fh7XtK6yUM6_uRR255hnwZux-4wBbYu8N8brI93hpEZZHs-MANGSzFK8QHquRSx0y8MEMbMrs9zdZ6lEFlYHLrzygn9QBY2s9xjgLL_a-_eEd8kDhZaA6Zl"
   );
 
-  // Image picker handler
+  // image picker handler
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -50,10 +50,7 @@ export default function ProfileScreen() {
     >
       {/* ===== Header ===== */}
       <View className="flex-row items-center justify-between px-5 py-4">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center"
-        >
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons
             name="arrow-back"
             size={24}
@@ -68,13 +65,13 @@ export default function ProfileScreen() {
         <View style={{ width: 24 }} />
       </View>
 
+      {/* ===== Content ===== */}
       <ScrollView
         className="flex-1 px-4 pt-4 pb-8"
         showsVerticalScrollIndicator={false}
       >
         {/* ===== Profile Section ===== */}
         <View className="flex flex-col items-center mb-8 mt-2">
-          {/* Profile image picker */}
           <TouchableOpacity
             onPress={pickImage}
             activeOpacity={0.8}
@@ -84,22 +81,21 @@ export default function ProfileScreen() {
               source={{ uri: profilePic }}
               className="h-32 w-32 rounded-full bg-center bg-cover"
             />
-            {/* Edit icon overlay */}
             <View className="absolute bottom-1 right-1 bg-[#0d59f2] rounded-full p-2">
               <MaterialIcons name="edit" size={18} color="#fff" />
             </View>
           </TouchableOpacity>
 
-          <Text className="text-[22px] font-bold text-gray-900 dark:text-white text-center mt-4 leading-tight">
+          <Text className="text-[22px] font-bold text-gray-900 dark:text-white mt-4">
             Alex Martinez
           </Text>
-          <Text className="text-base text-gray-500 dark:text-gray-400 text-center leading-normal">
+          <Text className="text-base text-gray-500 dark:text-gray-400">
             alex.martinez@smashlive.com
           </Text>
         </View>
 
-        {/* ===== Card Section ===== */}
-        <View className="bg-white dark:bg-gray-800/50 rounded-xl shadow-sm overflow-hidden">
+        {/* ===== Card 1 (Profile Actions) ===== */}
+        <View className="bg-white dark:bg-gray-800/50 rounded-xl shadow-sm overflow-hidden mb-5">
           {/* Edit Profile */}
           <TouchableOpacity
             activeOpacity={0.8}
@@ -110,17 +106,23 @@ export default function ProfileScreen() {
               <View className="bg-[#0d59f2]/20 rounded-lg size-10 items-center justify-center">
                 <MaterialIcons name="person" size={24} color="#0d59f2" />
               </View>
-              <Text className="text-gray-900 dark:text-white text-base font-medium leading-normal">
+              <Text className="text-gray-900 dark:text-white text-base font-medium">
                 Edit Profile
               </Text>
             </View>
-            <MaterialIcons
-              name="chevron-right"
-              size={26}
-              color={isDark ? "#9ca3af" : "#6b7280"}
-            />
-          </TouchableOpacity>
 
+            <View className="flex size-7 items-center justify-center">
+              <MaterialIcons
+                name="chevron-right"
+                size={26}
+                color={isDark ? "#9ca3af" : "#6b7280"}
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* ===== Card 2 (Support + Legal) ===== */}
+        <View className="bg-white dark:bg-gray-800/50 rounded-xl shadow-sm overflow-hidden mb-5">
           {/* Help & Support */}
           <TouchableOpacity
             activeOpacity={0.8}
@@ -131,18 +133,47 @@ export default function ProfileScreen() {
               <View className="bg-[#0d59f2]/20 rounded-lg size-10 items-center justify-center">
                 <MaterialIcons name="help-outline" size={24} color="#0d59f2" />
               </View>
-              <Text className="text-gray-900 dark:text-white text-base font-medium leading-normal">
+              <Text className="text-gray-900 dark:text-white text-base font-medium">
                 Help & Support
               </Text>
             </View>
-            <MaterialIcons
-              name="chevron-right"
-              size={26}
-              color={isDark ? "#9ca3af" : "#6b7280"}
-            />
+
+            <View className="flex size-7 items-center justify-center">
+              <MaterialIcons
+                name="chevron-right"
+                size={26}
+                color={isDark ? "#9ca3af" : "#6b7280"}
+              />
+            </View>
           </TouchableOpacity>
 
-          {/* Logout */}
+          {/* Terms & Conditions */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => router.push("/terms-conditions")}
+            className="flex-row items-center justify-between px-4 min-h-[60px]"
+          >
+            <View className="flex-row items-center gap-4">
+              <View className="bg-[#0d59f2]/20 rounded-lg size-10 items-center justify-center">
+                <MaterialIcons name="description" size={24} color="#0d59f2" />
+              </View>
+              <Text className="text-gray-900 dark:text-white text-base font-medium">
+                Terms & Conditions
+              </Text>
+            </View>
+
+            <View className="flex size-7 items-center justify-center">
+              <MaterialIcons
+                name="chevron-right"
+                size={26}
+                color={isDark ? "#9ca3af" : "#6b7280"}
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* ===== Card 3 (Logout) ===== */}
+        <View className="bg-white dark:bg-gray-800/50 rounded-xl shadow-sm overflow-hidden">
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => Alert.alert("Logout", "You have been logged out.")}
@@ -152,9 +183,7 @@ export default function ProfileScreen() {
               <View className="bg-red-500/20 rounded-lg size-10 items-center justify-center">
                 <MaterialIcons name="logout" size={22} color="#ef4444" />
               </View>
-              <Text className="text-base font-medium text-red-500 leading-normal">
-                Logout
-              </Text>
+              <Text className="text-base font-medium text-red-500">Logout</Text>
             </View>
           </TouchableOpacity>
         </View>
