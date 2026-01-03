@@ -1,3 +1,4 @@
+import ScreenWrapper from "@/components/ScreenWrapper";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -8,8 +9,10 @@ import {
   ScrollView,
   Text,
   View,
+  useColorScheme,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+/* ================= TYPES ================= */
 
 type Tournament = {
   id: string;
@@ -21,7 +24,8 @@ type Tournament = {
   status: "assigned" | "upcoming" | "live";
 };
 
-// ===== Sample Data =====
+/* ================= DATA (UNCHANGED) ================= */
+
 const assignedData: Tournament[] = [
   {
     id: "1",
@@ -95,43 +99,51 @@ const liveData: Tournament[] = [
   },
 ];
 
-// ===== Card Component =====
+/* ================= CARD ================= */
+
 const TournamentCard = ({ item }: { item: Tournament }) => {
   const router = useRouter();
+  const isDark = useColorScheme() === "dark";
+  const mutedIconColor = isDark ? "#9CA3AF" : "#475569";
+
   return (
     <View
-      className="mr-4 rounded-xl bg-white dark:bg-[#1A2233] border border-zinc-200 dark:border-gray-700 shadow-sm overflow-hidden"
+      className="mr-4 rounded-xl bg-light-card dark:bg-dark-card
+                 border border-light-border dark:border-dark-border
+                 overflow-hidden"
       style={{ width: 280 }}
     >
-      <Image
-        source={{ uri: item.image }}
-        style={{
-          width: "100%",
-          height: 130,
-        }}
-      />
+      <Image source={{ uri: item.image }} className="w-full h-[130px]" />
 
       <View className="p-4 flex-1 justify-between">
         <View>
-          <Text className="text-sm text-gray-500 dark:text-gray-400">
+          <Text className="text-sm text-light-muted dark:text-dark-muted">
             {item.dateRange}
           </Text>
 
-          <Text className="text-base font-bold text-gray-900 dark:text-white mt-1">
+          <Text className="text-base font-bold text-light-text dark:text-dark-text mt-1">
             {item.name}
           </Text>
 
           <View className="mt-3">
             <View className="flex-row items-center gap-1.5 mb-1">
-              <Ionicons name="tennisball-outline" size={16} color="#6b7280" />
-              <Text className="text-sm text-gray-600 dark:text-gray-300">
+              <Ionicons
+                name="tennisball-outline"
+                size={16}
+                color={mutedIconColor}
+              />
+              <Text className="text-sm text-light-muted dark:text-dark-muted">
                 Court Assigned: {item.courtAssigned}
               </Text>
             </View>
 
             <View className="flex-row items-center gap-1.5">
-              <Ionicons name="trophy-outline" size={16} color="#6b7280" />
-              <Text className="text-sm text-gray-600 dark:text-gray-300">
+              <Ionicons
+                name="trophy-outline"
+                size={16}
+                color={mutedIconColor}
+              />
+              <Text className="text-sm text-light-muted dark:text-dark-muted">
                 {item.matchCount} Matches
               </Text>
             </View>
@@ -140,20 +152,17 @@ const TournamentCard = ({ item }: { item: Tournament }) => {
 
         <Pressable
           className="bg-primary px-4 py-2 rounded-lg mt-4 self-start"
-          onPress={() => {
-            router.push(`/home/${item.id}`);
-          }}
+          onPress={() => router.push(`/home/${item.id}`)}
         >
-          <Text className="text-white text-sm font-medium">
-            Open Tournament
-          </Text>
+          <Text className="text-black text-sm font-bold">Open Tournament</Text>
         </Pressable>
       </View>
     </View>
   );
 };
 
-// ===== Section Component =====
+/* ================= SECTION ================= */
+
 const TournamentSection = ({
   title,
   data,
@@ -162,7 +171,7 @@ const TournamentSection = ({
   data: Tournament[];
 }) => (
   <>
-    <Text className="px-4 pt-6 pb-3 text-[22px] font-bold tracking-[-0.015em] text-zinc-900 dark:text-white ml-2">
+    <Text className="px-4 pt-6 pb-3 text-[22px] font-bold text-light-text dark:text-dark-text">
       {title}
     </Text>
 
@@ -172,46 +181,45 @@ const TournamentSection = ({
       data={data}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <TournamentCard item={item} />}
-      contentContainerStyle={{ paddingLeft: 16, paddingRight: 16 }}
+      contentContainerStyle={{ paddingHorizontal: 16 }}
     />
   </>
 );
 
-// ===== Main Home Screen =====
+/* ================= SCREEN ================= */
+
 export default function HomeScreen() {
-  const router = useRouter();
+  const isDark = useColorScheme() === "dark";
+  const mutedIconColor = isDark ? "#9CA3AF" : "#475569";
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      className="flex-1 bg-background-light dark:bg-[#101622]"
-    >
+    <ScreenWrapper>
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Header */}
+        {/* ================= HEADER ================= */}
         <View className="px-4 pt-4 pb-2">
-          <Text className="text-[32px] font-bold text-zinc-900 dark:text-white">
+          <Text className="text-[32px] font-bold text-light-text dark:text-dark-text">
             Hi, Umpire 👋
           </Text>
 
           <View className="mt-2 flex-row items-center">
-            <Ionicons name="location-sharp" size={18} color="#6b7280" />
+            <Ionicons name="location-sharp" size={18} color={mutedIconColor} />
             <Pressable className="flex-row items-center ml-1">
-              <Text className="text-zinc-600 dark:text-zinc-400 mr-1">
+              <Text className="text-light-muted dark:text-dark-muted mr-1">
                 Hyderabad, India
               </Text>
-              <Ionicons name="chevron-down" size={16} color="#6b7280" />
+              <Ionicons name="chevron-down" size={16} color={mutedIconColor} />
             </Pressable>
           </View>
         </View>
 
-        {/* Tournament Sections */}
+        {/* ================= SECTIONS ================= */}
         <TournamentSection title="Ongoing" data={assignedData} />
         <TournamentSection title="Upcoming" data={upcomingData} />
         <TournamentSection title="Past" data={liveData} />
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

@@ -1,3 +1,4 @@
+import ScreenWrapper from "@/components/ScreenWrapper";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -13,9 +14,8 @@ import {
   View,
   useColorScheme,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
-// Enable animation for Android expand/collapse
+// Enable animation for Android expand/collapse (UNCHANGED)
 if (
   Platform.OS === "android" &&
   UIManager.setLayoutAnimationEnabledExperimental
@@ -25,8 +25,7 @@ if (
 
 export default function HelpSupportScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const isDark = useColorScheme() === "dark";
 
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
@@ -68,64 +67,57 @@ export default function HelpSupportScreen() {
     setOpenFAQ(openFAQ === id ? null : id);
   };
 
+  const mutedIconColor = isDark ? "#9CA3AF" : "#475569";
+
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-white dark:bg-[#101622]">
-      {/* ===== Header ===== */}
-      <View className="flex-row items-center justify-between px-5 py-5">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center"
-        >
-          <Ionicons
-            name="arrow-back"
-            size={22}
-            color={isDark ? "#f9fafb" : "#111827"}
-          />
+    <ScreenWrapper>
+      {/* ================= HEADER ================= */}
+      <View className="flex-row items-center px-5 py-4">
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <Ionicons name="arrow-back" size={22} color={mutedIconColor} />
         </TouchableOpacity>
 
-        <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <Text className="text-lg font-semibold text-light-text dark:text-dark-text">
           Help & Support
         </Text>
-
-        <View style={{ width: 28 }} />
       </View>
 
-      {/* ===== Content ===== */}
+      {/* ================= CONTENT ================= */}
       <ScrollView
         className="flex-1 px-5"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 50 }}
       >
-        {/* ===== FAQ Section ===== */}
+        {/* ================= FAQ ================= */}
         <View className="mb-8 mt-4">
-          <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          <Text className="text-xl font-bold text-light-text dark:text-dark-text mb-4">
             Frequently Asked Questions
           </Text>
 
-          <View className="bg-white dark:bg-gray-800/60 rounded-xl shadow-sm">
+          <View className="bg-light-card dark:bg-dark-card rounded-xl border border-light-border dark:border-dark-border">
             {faqs.map((faq) => (
               <View
                 key={faq.id}
-                className="border-b border-gray-100 dark:border-gray-700"
+                className="border-b border-light-border dark:border-dark-border"
               >
                 <TouchableOpacity
                   onPress={() => handleToggle(faq.id)}
                   activeOpacity={0.8}
                   className="flex-row justify-between items-center px-5 py-4"
                 >
-                  <Text className="text-base font-medium text-gray-800 dark:text-gray-200 flex-1 pr-4">
+                  <Text className="text-base font-medium text-light-text dark:text-dark-text flex-1 pr-4">
                     {faq.question}
                   </Text>
                   <MaterialIcons
                     name={openFAQ === faq.id ? "expand-less" : "expand-more"}
                     size={26}
-                    color={isDark ? "#9ca3af" : "#6b7280"}
+                    color={mutedIconColor}
                   />
                 </TouchableOpacity>
 
                 {openFAQ === faq.id && (
                   <View className="px-5 pb-4">
-                    <Text className="text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <Text className="text-base text-light-muted dark:text-dark-muted leading-relaxed">
                       {faq.answer}
                     </Text>
                   </View>
@@ -135,33 +127,33 @@ export default function HelpSupportScreen() {
           </View>
         </View>
 
-        {/* ===== Contact Support Card ===== */}
+        {/* ================= CONTACT SUPPORT ================= */}
         <View className="mb-6">
-          <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          <Text className="text-xl font-bold text-light-text dark:text-dark-text mb-4">
             Contact Support
           </Text>
 
-          <View className="bg-white dark:bg-gray-800/60 rounded-xl shadow-sm">
+          <View className="bg-light-card dark:bg-dark-card rounded-xl border border-light-border dark:border-dark-border">
             {/* Email */}
             <TouchableOpacity
               onPress={() =>
                 Linking.openURL("mailto:umpire-support@smashlive.com")
               }
-              className="flex-row items-center justify-between px-5 py-5 border-b border-gray-100 dark:border-gray-700 active:bg-gray-100/60 dark:active:bg-gray-700/50"
+              className="flex-row items-center justify-between px-5 py-5 border-b border-light-border dark:border-dark-border"
               activeOpacity={0.85}
             >
               <View className="flex-row items-center gap-4">
-                <View className="size-11 rounded-full bg-[#0d59f2]/20 items-center justify-center">
-                  <MaterialIcons name="mail" size={24} color="#0d59f2" />
+                <View className="size-11 rounded-full bg-primary/20 items-center justify-center">
+                  <MaterialIcons name="mail" size={24} color="#8AFF1A" />
                 </View>
-                <Text className="text-base font-medium text-gray-900 dark:text-white">
+                <Text className="text-base font-medium text-light-text dark:text-dark-text">
                   Email Support
                 </Text>
               </View>
               <MaterialIcons
                 name="chevron-right"
                 size={26}
-                color={isDark ? "#9ca3af" : "#6b7280"}
+                color={mutedIconColor}
               />
             </TouchableOpacity>
 
@@ -173,26 +165,26 @@ export default function HelpSupportScreen() {
                   "Connecting you with SmashLive Umpire Support..."
                 )
               }
-              className="flex-row items-center justify-between px-5 py-5 active:bg-gray-100/60 dark:active:bg-gray-700/50"
+              className="flex-row items-center justify-between px-5 py-5"
               activeOpacity={0.85}
             >
               <View className="flex-row items-center gap-4">
-                <View className="size-11 rounded-full bg-[#0d59f2]/20 items-center justify-center">
-                  <MaterialIcons name="chat-bubble" size={22} color="#0d59f2" />
+                <View className="size-11 rounded-full bg-primary/20 items-center justify-center">
+                  <MaterialIcons name="chat-bubble" size={22} color="#8AFF1A" />
                 </View>
-                <Text className="text-base font-medium text-gray-900 dark:text-white">
+                <Text className="text-base font-medium text-light-text dark:text-dark-text">
                   Live Chat
                 </Text>
               </View>
               <MaterialIcons
                 name="chevron-right"
                 size={26}
-                color={isDark ? "#9ca3af" : "#6b7280"}
+                color={mutedIconColor}
               />
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

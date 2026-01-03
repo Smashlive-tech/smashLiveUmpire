@@ -1,3 +1,4 @@
+import ScreenWrapper from "@/components/ScreenWrapper";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -10,17 +11,21 @@ import {
   View,
   useColorScheme,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+/* ================= SCREEN ================= */
 
 export default function TournamentMatches() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const isDark = useColorScheme() === "dark";
 
+  const mutedIconColor = isDark ? "#9CA3AF" : "#475569";
+
   const [loading, setLoading] = useState(true);
   const [matches, setMatches] = useState<any[]>([]);
 
-  // ===== Mock Data =====
+  /* ================= MOCK DATA (UNCHANGED) ================= */
+
   const allMatches = [
     {
       id: 1,
@@ -65,10 +70,12 @@ export default function TournamentMatches() {
     },
   ];
 
-  // ===== Load matches for selected tournament =====
+  /* ================= LOAD MATCHES ================= */
+
   useEffect(() => {
     setLoading(true);
     setMatches([]);
+
     setTimeout(() => {
       const filtered = allMatches.filter((m) => m.tournamentId === id);
       setMatches(filtered);
@@ -77,37 +84,32 @@ export default function TournamentMatches() {
   }, [id]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-[#101622]">
-      {/* ===== Header ===== */}
-      <View className="flex-row items-center justify-between px-5 py-4">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons
-            name="arrow-back"
-            size={22}
-            color={isDark ? "#f9fafb" : "#111827"}
-          />
+    <ScreenWrapper>
+      {/* ================= HEADER ================= */}
+      <View className="flex-row items-center px-5 py-4">
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <Ionicons name="arrow-back" size={22} color={mutedIconColor} />
         </TouchableOpacity>
 
-        <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <Text className="text-lg font-semibold text-light-text dark:text-dark-text">
           Tournament Matches
         </Text>
-
-        <View style={{ width: 24 }} />
       </View>
 
-      {/* ===== Content ===== */}
+      {/* ================= CONTENT ================= */}
       <ScrollView
-        className="flex-1 space-y-4 p-4"
+        className="flex-1 p-4"
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         {loading && (
-          <View className="flex-1 items-center justify-center py-20">
-            <ActivityIndicator size="large" color="#2563EB" />
+          <View className="items-center justify-center py-20">
+            <ActivityIndicator size="large" color="#8AFF1A" />
           </View>
         )}
 
         {!loading && matches.length > 0 && (
-          <View className="flex-1 gap-2 mb-5">
+          <View className="gap-3 mb-5">
             {matches.map((match) => {
               const team1Players = match.team1
                 .split("&")
@@ -119,26 +121,28 @@ export default function TournamentMatches() {
               return (
                 <View
                   key={match.id}
-                  className="flex-row justify-between items-stretch rounded-xl bg-white dark:bg-[#1A2233] border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden"
+                  className="flex-row rounded-xl bg-light-card dark:bg-dark-card
+                             border border-light-border dark:border-dark-border
+                             overflow-hidden"
                 >
-                  {/* ===== Left Side: Match Info ===== */}
+                  {/* ===== LEFT ===== */}
                   <View className="flex-1 p-4">
-                    <Text className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                    <Text className="text-sm text-light-muted dark:text-dark-muted mb-1">
                       Match #{match.id} • {match.court}
                     </Text>
 
-                    <Text className="text-lg font-bold text-gray-900 dark:text-white mb-3">
+                    <Text className="text-lg font-bold text-light-text dark:text-dark-text mb-3">
                       {match.event}
                     </Text>
 
                     <View className="mb-4">
-                      <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      <Text className="text-sm font-medium text-light-muted dark:text-dark-muted mb-1">
                         Team 1:
                       </Text>
                       {team1Players.map((player: string, index: number) => (
                         <Text
                           key={index}
-                          className="text-base text-gray-700 dark:text-gray-300 ml-2"
+                          className="text-base text-light-text dark:text-dark-text ml-2"
                         >
                           • {player}
                         </Text>
@@ -146,62 +150,44 @@ export default function TournamentMatches() {
 
                       <View className="h-3" />
 
-                      <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      <Text className="text-sm font-medium text-light-muted dark:text-dark-muted mb-1">
                         Team 2:
                       </Text>
                       {team2Players.map((player: string, index: number) => (
                         <Text
                           key={index}
-                          className="text-base text-gray-700 dark:text-gray-300 ml-2"
+                          className="text-base text-light-text dark:text-dark-text ml-2"
                         >
                           • {player}
                         </Text>
                       ))}
                     </View>
 
-                    {/* ===== Button Logic ===== */}
-                    {match.status === "Live" && (
-                      <TouchableOpacity
-                        onPress={() => router.push(`/start_match/${match.id}`)}
-                        className="bg-yellow-500 rounded-lg h-9 w-full items-center justify-center"
-                      >
-                        <Text className="text-white text-[15px] font-semibold">
-                          Continue Match
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-
-                    {match.status === "Upcoming" && (
-                      <TouchableOpacity
-                        onPress={() => router.push(`/start_match/${match.id}`)}
-                        className="bg-blue-600 rounded-lg h-9 w-full items-center justify-center"
-                      >
-                        <Text className="text-white text-[15px] font-semibold">
-                          Start Match
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-
-                    {match.status === "Completed" && (
-                      <TouchableOpacity
-                        onPress={() => router.push("/result/[id]")}
-                        className="bg-green-600 rounded-lg h-9 w-full items-center justify-center"
-                      >
-                        <Text className="text-white text-[15px] font-semibold">
-                          View Result
-                        </Text>
-                      </TouchableOpacity>
-                    )}
+                    {/* ===== ACTION BUTTON ===== */}
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (match.status === "Completed") {
+                          router.push(`/result/${match.id}`);
+                        } else {
+                          router.push(`/start_match/${match.id}`);
+                        }
+                      }}
+                      className="bg-primary rounded-lg h-9 w-full items-center justify-center"
+                    >
+                      <Text className="text-black text-[15px] font-bold">
+                        {match.status === "Live"
+                          ? "Continue Match"
+                          : match.status === "Upcoming"
+                            ? "Start Match"
+                            : "View Result"}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
 
-                  {/* ===== Right Side: Full Height Image ===== */}
+                  {/* ===== RIGHT IMAGE ===== */}
                   <Image
                     source={{ uri: match.image }}
                     className="w-[45%] h-full"
-                    style={{
-                      borderTopRightRadius: 12,
-                      borderBottomRightRadius: 12,
-                    }}
                     resizeMode="cover"
                   />
                 </View>
@@ -211,21 +197,21 @@ export default function TournamentMatches() {
         )}
 
         {!loading && matches.length === 0 && (
-          <View className="flex flex-col items-center justify-center py-16 px-4">
+          <View className="items-center justify-center py-16 px-4">
             <Ionicons
               name="tennisball-outline"
               size={48}
-              color={isDark ? "#9ca3af" : "#6b7280"}
+              color={mutedIconColor}
             />
-            <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-3">
+            <Text className="text-lg font-semibold text-light-text dark:text-dark-text mt-3">
               No Matches Found
             </Text>
-            <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1 text-center">
+            <Text className="text-sm text-light-muted dark:text-dark-muted mt-1 text-center">
               Matches for this tournament will appear here.
             </Text>
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

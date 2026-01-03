@@ -1,3 +1,4 @@
+import ScreenWrapper from "@/components/ScreenWrapper";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -13,102 +14,181 @@ import {
 import StopwatchTimer, {
   StopwatchTimerMethods,
 } from "react-native-animated-stopwatch-timer";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+/* ================= TYPES ================= */
 
 type Player = { name: string };
 type Team = { name: string; players: Player[] };
+
 type Match = {
   id: string;
   title: string;
-  type: "1v1" | "2v2" | "4v4";
   court: string;
   teams: { A: Team; B: Team };
 };
 
-const mockMatches: Record<string, Match> = {
-  "1": {
-    id: "1",
-    title: "Men's Doubles – Final",
-    type: "2v2",
-    court: "Court 3",
-    teams: {
-      A: {
-        name: "Team Malaysia",
-        players: [{ name: "Aaron Chia" }, { name: "Soh Wooi Yik" }],
-      },
-      B: {
-        name: "Team Indonesia",
-        players: [{ name: "Mohammad Ahsan" }, { name: "Hendra Setiawan" }],
-      },
+/* ================= MOCK DATA ================= */
+
+const mockMatch: Match = {
+  id: "1",
+  title: "Men’s Doubles – Final",
+  court: "Court 3",
+  teams: {
+    A: {
+      name: "Team Malaysia",
+      players: [{ name: "Aaron Chia" }, { name: "Soh Wooi Yik" }],
+    },
+    B: {
+      name: "Team Indonesia",
+      players: [{ name: "Mohammad Ahsan" }, { name: "Hendra Setiawan" }],
     },
   },
 };
 
-export default function StartMatchScreen({ matchId }: { matchId: string }) {
+/* ================= BADMINTON RULE HELPERS ================= */
+
+// BWF-compliant set win logic
+const isSetWon = (a: number, b: number) => {
+  const max = Math.max(a, b);
+  const min = Math.min(a, b);
+
+  if (max === 30) return true; // 30–29 cap
+  if (max >= 21 && max - min >= 2) return true;
+
+  return false;
+};
+
+const getSetWinner = (set: { A: number; B: number }): "A" | "B" =>
+  set.A > set.B ? "A" : "B";
+
+/* ================= SCREEN ================= */
+
+export default function StartMatchScreen() {
   const router = useRouter();
   const isDark = useColorScheme() === "dark";
+  const mutedIconColor = isDark ? "#9CA3AF" : "#475569";
 
-  const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showServeModal, setShowServeModal] = useState(true); // 👈 new modal for first serve
+  const [match, setMatch] = useState<Match | null>(null);
 
-  const [scores, setScores] = useState({ A: 0, B: 0 });
+  const [showServeModal, setShowServeModal] = useState(true);
   const [servingTeam, setServingTeam] = useState<"A" | "B" | null>(null);
 
+  const [currentSet, setCurrentSet] = useState(0);
+  const [sets, setSets] = useState([
+    { A: 0, B: 0 },
+    { A: 0, B: 0 },
+    { A: 0, B: 0 },
+  ]);
+
   const [isRunning, setIsRunning] = useState(false);
+  const [setFinished, setSetFinished] = useState(false);
+
   const stopwatchTimerRef = useRef<StopwatchTimerMethods>(null);
 
   useEffect(() => {
     setTimeout(() => {
-      setMatch(mockMatches[matchId] || mockMatches["1"]);
+      setMatch(mockMatch);
       setLoading(false);
     }, 500);
-  }, [matchId]);
+  }, []);
 
-  // ===== Score update + auto serve =====
+  /* ================= SCORE LOGIC (VALIDATED) ================= */
+
   const updateScore = (team: "A" | "B", delta: number) => {
-    setScores((prev) => {
-      const newScore = { ...prev };
-      if (prev[team] + delta < 0) return prev;
+    if (!isRunning || setFinished) return;
 
-      newScore[team] = prev[team] + delta;
+    setSets((prev) => {
+      const updated = [...prev];
+      const current = updated[currentSet];
+      const opponent = team === "A" ? "B" : "A";
 
-      if (delta > 0) {
-        setServingTeam(team); // scorer serves next
-      } else if (delta < 0) {
-        setServingTeam(team === "A" ? "B" : "A"); // reverse serve on score removal
+      const nextScore = current[team] + delta;
+
+      // ❌ Invalid score ranges
+      if (nextScore < 0 || nextScore > 30) return prev;
+
+      updated[currentSet] = { ...current, [team]: nextScore };
+
+      if (delta > 0) setServingTeam(team);
+
+      const a = updated[currentSet].A;
+      const b = updated[currentSet].B;
+
+      // ✅ Check set completion
+      if (isSetWon(a, b)) {
+        stopwatchTimerRef.current?.pause();
+        setIsRunning(false);
+        setSetFinished(true);
+
+        Alert.alert(
+          "Set Complete",
+          `${match?.teams[getSetWinner({ A: a, B: b })].name} won Set ${
+            currentSet + 1
+          }`
+        );
       }
 
-      return newScore;
+      return updated;
     });
   };
 
-  // ===== Stopwatch Controls =====
+  /* ================= TIMER ================= */
+
   const handlePlay = () => {
     stopwatchTimerRef.current?.play();
     setIsRunning(true);
   };
+
   const handlePause = () => {
     stopwatchTimerRef.current?.pause();
     setIsRunning(false);
   };
-  const handleReset = () => {
-    // Ask for confirmation before resetting
+
+  /* ================= SUBMIT LOGIC (MATCH VALIDATION) ================= */
+
+  const handleSubmitSet = () => {
+    const playedSets = sets.slice(0, currentSet + 1);
+    const winners = playedSets.map(getSetWinner);
+
+    const winsA = winners.filter((w) => w === "A").length;
+    const winsB = winners.filter((w) => w === "B").length;
+
+    // ❌ Invalid match state
+    if (winsA < 2 && winsB < 2 && currentSet === 2) {
+      Alert.alert("Invalid Result", "Match winner not decided yet.");
+      return;
+    }
+
     Alert.alert(
-      "Confirm Reset",
-      "Are you sure you want to reset the match? This will clear all scores and restart the timer.",
+      "Submit Set Result",
+      `Submit result for Set ${currentSet + 1}?`,
       [
+        { text: "Cancel", style: "cancel" },
         {
-          text: "Cancel",
-          style: "cancel", // closes alert, does nothing
-        },
-        {
-          text: "OK",
+          text: "Submit",
           onPress: () => {
-            stopwatchTimerRef.current?.reset();
-            setIsRunning(false);
-            setScores({ A: 0, B: 0 });
+            // 🏆 Match completed early
+            if (winsA === 2 || winsB === 2) {
+              router.push({
+                pathname: "/result/confirm_result",
+                params: {
+                  set1A: sets[0].A,
+                  set1B: sets[0].B,
+                  set2A: sets[1].A,
+                  set2B: sets[1].B,
+                  set3A: sets[2].A,
+                  set3B: sets[2].B,
+                },
+              });
+              return;
+            }
+
+            // ➡️ Move to next set
+            setCurrentSet((s) => s + 1);
+            setSetFinished(false);
             setServingTeam(null);
+            stopwatchTimerRef.current?.reset();
             setShowServeModal(true);
           },
         },
@@ -116,24 +196,30 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
     );
   };
 
+  /* ================= LOADING ================= */
+
   if (loading || !match) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-white dark:bg-[#101622]">
-        <ActivityIndicator size="large" color="#2563EB" />
-        <Text className="mt-3 text-gray-500 dark:text-gray-400">
-          Loading match…
-        </Text>
-      </SafeAreaView>
+      <ScreenWrapper>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#8AFF1A" />
+          <Text className="mt-3 text-light-muted dark:text-dark-muted">
+            Loading match…
+          </Text>
+        </View>
+      </ScreenWrapper>
     );
   }
 
+  /* ================= UI ================= */
+
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-[#101622]">
-      {/* ===== Serve Selection Modal ===== */}
+    <ScreenWrapper>
+      {/* ================= SERVE MODAL ================= */}
       <Modal visible={showServeModal} transparent animationType="fade">
         <View className="flex-1 items-center justify-center bg-black/60 px-6">
-          <View className="bg-white dark:bg-[#1E2738] rounded-2xl p-6 w-full max-w-sm items-center">
-            <Text className="text-lg font-bold text-gray-900 dark:text-white mb-4 text-center">
+          <View className="bg-light-card dark:bg-dark-card rounded-2xl p-6 w-full">
+            <Text className="text-lg font-bold text-center mb-4 text-light-text dark:text-dark-text">
               Select First Serving Team
             </Text>
 
@@ -145,9 +231,9 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
                   setShowServeModal(false);
                   handlePlay();
                 }}
-                className="w-full py-3 mb-3 rounded-lg bg-blue-600 active:bg-blue-700"
+                className="py-3 mb-3 rounded-lg bg-primary"
               >
-                <Text className="text-white text-center font-semibold text-base">
+                <Text className="text-black text-center font-semibold">
                   {match.teams[side].name}
                 </Text>
               </TouchableOpacity>
@@ -156,55 +242,40 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
         </View>
       </Modal>
 
-      {/* ===== Header ===== */}
-      <View className="px-5 pt-4 pb-3 mb-3">
-        <View className="flex-row items-center justify-between mb-8">
-          <TouchableOpacity onPress={() => router.back()} className="w-10">
-            <Ionicons
-              name="arrow-back"
-              size={22}
-              color={isDark ? "#f9fafb" : "#111827"}
-            />
-          </TouchableOpacity>
+      {/* ================= HEADER ================= */}
+      <View className="px-5 pt-4 pb-3">
+        <Text className="text-lg font-bold text-center text-light-text dark:text-dark-text">
+          {match.title}
+        </Text>
 
-          <Text className="text-lg font-bold text-gray-900 dark:text-white text-center flex-1">
-            {match.title}
-          </Text>
-        </View>
-
-        {/* Player Cards */}
-        <View className="flex-row gap-4">
+        {/* TEAMS */}
+        <View className="flex-row gap-4 mt-4">
           {(["A", "B"] as const).map((side) => (
             <View
               key={side}
-              className="flex-1 justify-center p-3 bg-gray-100 dark:bg-gray-800/50 rounded-lg"
+              className="flex-1 bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg p-3"
             >
-              {/* Team Name */}
-              <Text className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 text-left">
+              <Text className="font-semibold mb-1 text-light-text dark:text-dark-text">
                 {match.teams[side].name}
               </Text>
 
-              {/* Player List */}
-              <View className="ml-1">
-                {match.teams[side].players.map((player, idx) => (
-                  <Text
-                    key={idx}
-                    className="text-base font-bold text-gray-900 dark:text-white text-left mb-1"
-                  >
-                    • {player.name}
-                  </Text>
-                ))}
-              </View>
+              {match.teams[side].players.map((p) => (
+                <Text
+                  key={p.name}
+                  className="text-sm text-light-muted dark:text-dark-muted"
+                >
+                  • {p.name}
+                </Text>
+              ))}
 
-              {/* Serving Indicator */}
               {servingTeam === side && (
                 <View className="flex-row items-center mt-2">
                   <MaterialIcons
                     name="sports-tennis"
-                    size={18}
-                    color="#2563EB"
+                    size={16}
+                    color="#8AFF1A"
                   />
-                  <Text className="ml-1 text-sm font-medium text-blue-600">
+                  <Text className="ml-1 text-primary text-sm font-medium">
                     Serving
                   </Text>
                 </View>
@@ -212,100 +283,130 @@ export default function StartMatchScreen({ matchId }: { matchId: string }) {
             </View>
           ))}
         </View>
+
+        {/* SET INDICATOR */}
+        <View className="flex-row justify-center gap-2 mt-3">
+          {[0, 1, 2].map((i) => (
+            <View
+              key={i}
+              className={`px-3 py-1 rounded-full ${
+                i === currentSet
+                  ? "bg-primary"
+                  : "bg-light-border dark:bg-dark-border"
+              }`}
+            >
+              <Text
+                className={`text-sm font-medium ${
+                  i === currentSet
+                    ? "text-black"
+                    : "text-light-muted dark:text-dark-muted"
+                }`}
+              >
+                Set {i + 1}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
 
-      {/* ===== Main Scoring Area ===== */}
-      <View className="flex-1 px-5 items-center justify-center mb-4">
-        <View className="flex-row w-full justify-between">
+      {/* ================= SCORE ================= */}
+      <View className="flex-1 items-center justify-center">
+        <View className="flex-row w-full justify-between px-5">
           {(["A", "B"] as const).map((side) => (
             <View key={side} className="items-center flex-1">
-              <Text className="text-[80px] font-extrabold text-gray-900 dark:text-white leading-none mb-4">
-                {scores[side]}
+              <Text className="text-[72px] font-extrabold text-light-text dark:text-dark-text">
+                {sets[currentSet][side]}
               </Text>
 
-              <View className="flex-row gap-4">
+              <View className="flex-row gap-4 mt-4">
                 <TouchableOpacity
+                  disabled={!isRunning || setFinished}
                   onPress={() => updateScore(side, -1)}
-                  className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-800/50 items-center justify-center"
+                  className={`w-14 h-14 rounded-full items-center justify-center ${
+                    isRunning && !setFinished
+                      ? "bg-light-card dark:bg-dark-card"
+                      : "bg-light-border dark:bg-dark-border opacity-50"
+                  }`}
                 >
-                  <Ionicons
-                    name="remove"
-                    size={36}
-                    color={isDark ? "#d1d5db" : "#4b5563"}
-                  />
+                  <Ionicons name="remove" size={28} color={mutedIconColor} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                  disabled={!isRunning || setFinished}
                   onPress={() => updateScore(side, 1)}
-                  className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-800/50 items-center justify-center"
+                  className={`w-14 h-14 rounded-full items-center justify-center ${
+                    isRunning && !setFinished
+                      ? "bg-light-card dark:bg-dark-card"
+                      : "bg-light-border dark:bg-dark-border opacity-50"
+                  }`}
                 >
-                  <Ionicons
-                    name="add"
-                    size={36}
-                    color={isDark ? "#d1d5db" : "#4b5563"}
-                  />
+                  <Ionicons name="add" size={28} color={mutedIconColor} />
                 </TouchableOpacity>
               </View>
             </View>
           ))}
         </View>
 
-        {/* ===== Timer & Controls ===== */}
-        <View className="mt-10 w-full max-w-sm items-center">
+        {/* TIMER */}
+        <View className="mt-10 items-center">
           <StopwatchTimer
             ref={stopwatchTimerRef}
-            containerStyle={{
-              backgroundColor: "transparent",
-              marginBottom: 12,
-            }}
             trailingZeros={0}
             decimalSeparator=":"
             textCharStyle={{
-              fontSize: 38,
+              fontSize: 36,
               fontWeight: "bold",
-              color: isDark ? "#fff" : "#111827",
+              color: isDark ? "#FFFFFF" : "#0F172A",
             }}
           />
 
-          <View className="flex-row justify-center gap-6 p-3 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
-            <TouchableOpacity
-              onPress={isRunning ? handlePause : handlePlay}
-              className="p-3 rounded-lg "
-            >
+          <View className="flex-row gap-6 mt-4 bg-light-card dark:bg-dark-card px-6 py-3 rounded-lg">
+            <TouchableOpacity onPress={isRunning ? handlePause : handlePlay}>
               <Ionicons
                 name={isRunning ? "pause" : "play"}
                 size={26}
-                color="#2563EB"
+                color="#8AFF1A"
               />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleReset} className="p-3 rounded-lg ">
-              <Ionicons name="refresh" size={26} color="#2563EB" />
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert(
+                  "Reset Timer",
+                  "Do you want to reset the timer for this set?",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Reset",
+                      onPress: () => {
+                        stopwatchTimerRef.current?.reset();
+                        setIsRunning(false);
+                      },
+                    },
+                  ]
+                )
+              }
+            >
+              <Ionicons name="refresh" size={26} color="#8AFF1A" />
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      {/* ===== Footer Buttons ===== */}
-      <View className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#101622]">
+      {/* ================= FOOTER ================= */}
+      <View className="p-4 border-t mb-10 border-light-border dark:border-dark-border">
         <TouchableOpacity
-          className="mb-3 h-14 w-full items-center justify-center rounded-lg bg-blue-600"
-          onPress={() =>
-            router.push({
-              pathname: "/result/confirm_result",
-              params: { id: "1", scoreA: "21", scoreB: "18" },
-            })
-          }
+          disabled={!setFinished}
+          onPress={handleSubmitSet}
+          className={`h-12 rounded-lg items-center justify-center ${
+            setFinished ? "bg-primary" : "bg-primary/40"
+          }`}
         >
-          <Text className="text-lg font-bold text-white">Submit Result</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="h-14 w-full items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600">
-          <Text className="text-lg font-medium text-gray-600 dark:text-gray-300">
-            Report Issue
+          <Text className="text-black text-base font-bold">
+            {currentSet < 2 ? "Submit Set Result" : "Submit Match Result"}
           </Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
